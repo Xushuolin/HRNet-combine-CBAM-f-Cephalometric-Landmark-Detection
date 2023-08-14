@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
+import torch
 
 import torch.nn as nn
 from mmcv.cnn import build_conv_layer, build_norm_layer
@@ -9,6 +10,48 @@ from torch.nn.modules.batchnorm import _BatchNorm
 from mmpose.registry import MODELS
 from .base_backbone import BaseBackbone
 from .resnet import BasicBlock, Bottleneck, get_expansion
+
+class ChannelAttention(nn.Module):
+    def __init__(self, in_planes, reduction_ratio=16):
+        super(ChannelAttention, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        self.fc1 = nn.Conv2d(in_planes, in_planes // reduction_ratio, 1, bias=False)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Conv2d(in_planes // reduction_ratio, in_planes, 1, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        avg_out = self.fc2(self.relu1(self.fc1(self.avg_pool(x))))
+        max_out = self.fc2(self.relu1(self.fc1(self.max_pool(x))))
+        out = avg_out + max_out
+        return self.sigmoid(out)
+
+class SpatialAttention(nn.Module):
+    def __init__(self):
+        super(SpatialAttention, self).__init__()
+        self.conv1 = nn.Conv2d(2, 1, kernel_size=7, padding=3, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x = torch.cat([avg_out, max_out], dim=1)
+        x = self.conv1(x)
+        return self.sigmoid(x)
+
+class CBAM(nn.Module):
+    def __init__(self, in_planes, reduction_ratio=16):
+        super(CBAM, self).__init__()
+        self.ca = ChannelAttention(in_planes, reduction_ratio)
+        self.sa = SpatialAttention()
+
+    def forward(self, x):
+        x = x * self.ca(x)
+        x = x * self.sa(x)
+        return x
+
+
 
 
 class HRModule(BaseModule):
@@ -48,6 +91,7 @@ class HRModule(BaseModule):
         self.branches = self._make_branches(num_branches, blocks, num_blocks,
                                             num_channels)
         self.fuse_layers = self._make_fuse_layers()
+        self.cbams = nn.ModuleList([CBAM(ch) for ch in num_channels])
         self.relu = nn.ReLU(inplace=True)
 
     @staticmethod
@@ -198,6 +242,8 @@ class HRModule(BaseModule):
 
         for i in range(self.num_branches):
             x[i] = self.branches[i](x[i])
+            x[i] = self.cbams[i](x[i]) if self.cbams is not None else x[i]
+
 
         x_fuse = []
         for i in range(len(self.fuse_layers)):
@@ -608,3 +654,10 @@ class HRNet(BaseBackbone):
             for m in self.modules():
                 if isinstance(m, _BatchNorm):
                     m.eval()
+        # Initialize CBAM modules for each branch
+        
+        
+
+        self.cbams_stage2 = nn.ModuleList([CBAM(self.stage2_cfg['num_channels'][i]) for i in range(self.stage2_cfg['num_branches'])])
+        self.cbams_stage3 = nn.ModuleList([CBAM(self.stage3_cfg['num_channels'][i]) for i in range(self.stage3_cfg['num_branches'])])
+        self.cbams_stage4 = nn.ModuleList([CBAM(self.stage4_cfg['num_channels'][i]) for i in range(self.stage4_cfg['num_branches'])])
