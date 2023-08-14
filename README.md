@@ -2,7 +2,7 @@
 Topdown Heatmap regression based HRNet combine CBAM for Cephalometric Landmark Detection in Lateral X-ray Images
 
 Please focus on the hrnet.py file to see how HRnet+CBAM is implemented, and the configuration file in the configuration file home to set up the tuning parameters for the training loss.
-
+After you have downloaded MMPose you can replace the old hrnet.py backbone file in MMPose\mmpose_package\mmpose\mmpose\models\backbones with hrnet.py.
 ## Since this work is based on MMPose and for the CL-detection challenge. Therefore the dataset and some accompanying files need to be downloaded separately.
 First install MMPose https://mmpose.readthedocs.io/en/latest/installation.html#installation
 Get the dataset on the Challenge website https://cl-detection2023.grand-challenge.org/
