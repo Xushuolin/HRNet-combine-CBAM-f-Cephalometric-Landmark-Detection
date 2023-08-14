@@ -1,0 +1,534 @@
+2023/08/12 13:45:31 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: win32
+    Python: 3.8.17 (default, Jul  5 2023, 20:44:21) [MSC v.1916 64 bit (AMD64)]
+    CUDA available: True
+    numpy_random_seed: 1671002347
+    GPU 0: NVIDIA GeForce RTX 3060 Ti
+    CUDA_HOME: D:\cuda4
+    NVCC: Cuda compilation tools, release 11.7, V11.7.64
+    MSVC: 用于 x64 的 Microsoft (R) C/C++ 优化编译器 19.37.32822 版
+    GCC: n/a
+    PyTorch: 2.0.0+cu117
+    PyTorch compiling details: PyTorch built with:
+  - C++ Version: 199711
+  - MSVC 193431937
+  - Intel(R) Math Kernel Library Version 2020.0.2 Product Build 20200624 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.7.3 (Git Hash 6dbeffbae1f23cbbeae17adb7b5b13f1f37c080e)
+  - OpenMP 2019
+  - LAPACK is enabled (usually provided by MKL)
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.7
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.5
+  - Magma 2.5.4
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.7, CUDNN_VERSION=8.5.0, CXX_COMPILER=C:/actions-runner/_work/pytorch/pytorch/builder/windows/tmp_bin/sccache-cl.exe, CXX_FLAGS=/DWIN32 /D_WINDOWS /GR /EHsc /w /bigobj /FS -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOCUPTI -DLIBKINETO_NOROCTRACER -DUSE_FBGEMM -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_DISABLE_GPU_ASSERTS=OFF, TORCH_VERSION=2.0.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=OFF, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+    TorchVision: 0.15.1+cu117
+    OpenCV: 4.8.0
+    MMEngine: 0.8.2
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 1671002347
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+2023/08/12 13:45:32 - mmengine - INFO - Config:
+default_scope = 'mmpose'
+default_hooks = dict(
+    timer=dict(type='IterTimerHook'),
+    logger=dict(type='LoggerHook', interval=1),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    checkpoint=dict(
+        type='CheckpointHook',
+        interval=2,
+        max_keep_ckpts=5,
+        save_best='SDR 2.0mm',
+        rule='greater'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    visualization=dict(
+        type='PoseVisualizationHook',
+        enable=True,
+        show=False,
+        out_dir='E:\\CL-Detection2023-MMPose\\MMPose-visualize',
+        interval=1))
+custom_hooks = [
+    dict(type='SyncBuffersHook'),
+]
+env_cfg = dict(
+    cudnn_benchmark=False,
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    dist_cfg=dict(backend='nccl'))
+vis_backends = [
+    dict(type='LocalVisBackend'),
+]
+visualizer = dict(
+    type='PoseLocalVisualizer',
+    vis_backends=[
+        dict(type='LocalVisBackend'),
+        dict(type='TensorboardVisBackend'),
+    ],
+    name='visualizer')
+log_processor = dict(
+    type='LogProcessor', window_size=50, by_epoch=True, num_digits=6)
+log_level = 'INFO'
+load_from = 'E:\\CL-Detection2023-MMPose\\MMPose-checkpoints\\best_SDR 2.0mm_epoch_170.pth'
+resume = False
+backend_args = dict(backend='local')
+train_cfg = dict(by_epoch=True, max_epochs=250, val_interval=2)
+val_cfg = dict()
+test_cfg = dict()
+optim_wrapper = dict(optimizer=dict(type='Adam', lr=0.0005))
+param_scheduler = [
+    dict(
+        type='LinearLR', begin=0, end=500, start_factor=0.001, by_epoch=False),
+    dict(
+        type='MultiStepLR',
+        begin=0,
+        end=210,
+        milestones=[
+            170,
+            200,
+        ],
+        gamma=0.1,
+        by_epoch=True),
+]
+auto_scale_lr = dict(base_batch_size=512)
+codec = dict(
+    type='MSRAHeatmap',
+    input_size=(
+        512,
+        512,
+    ),
+    heatmap_size=(
+        128,
+        128,
+    ),
+    sigma=2)
+model = dict(
+    type='TopdownPoseEstimator',
+    data_preprocessor=dict(
+        type='PoseDataPreprocessor',
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        bgr_to_rgb=True),
+    backbone=dict(
+        type='HRNet',
+        in_channels=3,
+        extra=dict(
+            stage1=dict(
+                num_modules=1,
+                num_branches=1,
+                block='BOTTLENECK',
+                num_blocks=(4, ),
+                num_channels=(64, )),
+            stage2=dict(
+                num_modules=1,
+                num_branches=2,
+                block='BASIC',
+                num_blocks=(
+                    4,
+                    4,
+                ),
+                num_channels=(
+                    48,
+                    96,
+                )),
+            stage3=dict(
+                num_modules=4,
+                num_branches=3,
+                block='BASIC',
+                num_blocks=(
+                    5,
+                    5,
+                    5,
+                ),
+                num_channels=(
+                    48,
+                    96,
+                    192,
+                )),
+            stage4=dict(
+                num_modules=3,
+                num_branches=4,
+                block='BASIC',
+                num_blocks=(
+                    4,
+                    4,
+                    4,
+                    4,
+                ),
+                num_channels=(
+                    48,
+                    96,
+                    192,
+                    384,
+                ))),
+        init_cfg=dict(
+            type='Pretrained',
+            checkpoint=
+            'https://download.openmmlab.com/mmpose/pretrain_models/hrnet_w48-8ef0771d.pth'
+        )),
+    head=dict(
+        type='HeatmapHead',
+        in_channels=48,
+        out_channels=38,
+        deconv_out_channels=None,
+        loss=dict(type='KeypointOHKMMSELoss', use_target_weight=True),
+        decoder=dict(
+            type='MSRAHeatmap',
+            input_size=(
+                512,
+                512,
+            ),
+            heatmap_size=(
+                128,
+                128,
+            ),
+            sigma=2)),
+    test_cfg=dict(flip_test=True, flip_mode='heatmap', shift_heatmap=True))
+dataset_type = 'CephalometricDataset'
+data_mode = 'topdown'
+data_root = 'E:/CL-Detection2023-MMPose/CL-detection2023'
+train_pipeline = [
+    dict(type='LoadImage'),
+    dict(type='GetBBoxCenterScale', padding=1.0),
+    dict(type='RandomFlip', direction='horizontal'),
+    dict(type='RandomBBoxTransform', shift_prob=0, rotate_factor=60),
+    dict(
+        type='Albumentation',
+        transforms=[
+            dict(type='Blur', p=0.1),
+            dict(type='MedianBlur', p=0.1),
+            dict(
+                type='CoarseDropout',
+                max_holes=1,
+                max_height=0.2,
+                max_width=0.2,
+                min_holes=1,
+                min_height=0.1,
+                min_width=0.1,
+                p=1.0),
+        ]),
+    dict(type='TopdownAffine', input_size=(
+        512,
+        512,
+    )),
+    dict(
+        type='GenerateTarget',
+        encoder=dict(
+            type='MSRAHeatmap',
+            input_size=(
+                512,
+                512,
+            ),
+            heatmap_size=(
+                128,
+                128,
+            ),
+            sigma=2)),
+    dict(
+        type='PackPoseInputs',
+        meta_keys=(
+            'id',
+            'img_id',
+            'img_path',
+            'category_id',
+            'crowd_index',
+            'ori_shape',
+            'img_shape',
+            'input_size',
+            'input_center',
+            'input_scale',
+            'flip',
+            'flip_direction',
+            'flip_indices',
+            'raw_ann_info',
+            'spacing',
+        )),
+]
+val_pipeline = [
+    dict(type='LoadImage'),
+    dict(type='GetBBoxCenterScale'),
+    dict(type='TopdownAffine', input_size=(
+        512,
+        512,
+    )),
+    dict(
+        type='PackPoseInputs',
+        meta_keys=(
+            'id',
+            'img_id',
+            'img_path',
+            'category_id',
+            'crowd_index',
+            'ori_shape',
+            'img_shape',
+            'input_size',
+            'input_center',
+            'input_scale',
+            'flip',
+            'flip_direction',
+            'flip_indices',
+            'raw_ann_info',
+            'spacing',
+        )),
+]
+train_dataloader = dict(
+    batch_size=4,
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(type='DefaultSampler', shuffle=True),
+    dataset=dict(
+        type='CephalometricDataset',
+        data_root='E:/CL-Detection2023-MMPose/CL-detection2023',
+        data_mode='topdown',
+        ann_file='train.json',
+        data_prefix=dict(img='MMPose/'),
+        pipeline=[
+            dict(type='LoadImage'),
+            dict(type='GetBBoxCenterScale', padding=1.0),
+            dict(type='RandomFlip', direction='horizontal'),
+            dict(type='RandomBBoxTransform', shift_prob=0, rotate_factor=60),
+            dict(
+                type='Albumentation',
+                transforms=[
+                    dict(type='Blur', p=0.1),
+                    dict(type='MedianBlur', p=0.1),
+                    dict(
+                        type='CoarseDropout',
+                        max_holes=1,
+                        max_height=0.2,
+                        max_width=0.2,
+                        min_holes=1,
+                        min_height=0.1,
+                        min_width=0.1,
+                        p=1.0),
+                ]),
+            dict(type='TopdownAffine', input_size=(
+                512,
+                512,
+            )),
+            dict(
+                type='GenerateTarget',
+                encoder=dict(
+                    type='MSRAHeatmap',
+                    input_size=(
+                        512,
+                        512,
+                    ),
+                    heatmap_size=(
+                        128,
+                        128,
+                    ),
+                    sigma=2)),
+            dict(
+                type='PackPoseInputs',
+                meta_keys=(
+                    'id',
+                    'img_id',
+                    'img_path',
+                    'category_id',
+                    'crowd_index',
+                    'ori_shape',
+                    'img_shape',
+                    'input_size',
+                    'input_center',
+                    'input_scale',
+                    'flip',
+                    'flip_direction',
+                    'flip_indices',
+                    'raw_ann_info',
+                    'spacing',
+                )),
+        ]))
+val_dataloader = dict(
+    batch_size=4,
+    num_workers=2,
+    persistent_workers=True,
+    drop_last=False,
+    sampler=dict(type='DefaultSampler', shuffle=False, round_up=False),
+    dataset=dict(
+        type='CephalometricDataset',
+        data_root='E:/CL-Detection2023-MMPose/CL-detection2023',
+        data_mode='topdown',
+        ann_file='valid.json',
+        data_prefix=dict(img='MMPose/'),
+        test_mode=True,
+        pipeline=[
+            dict(type='LoadImage'),
+            dict(type='GetBBoxCenterScale'),
+            dict(type='TopdownAffine', input_size=(
+                512,
+                512,
+            )),
+            dict(
+                type='PackPoseInputs',
+                meta_keys=(
+                    'id',
+                    'img_id',
+                    'img_path',
+                    'category_id',
+                    'crowd_index',
+                    'ori_shape',
+                    'img_shape',
+                    'input_size',
+                    'input_center',
+                    'input_scale',
+                    'flip',
+                    'flip_direction',
+                    'flip_indices',
+                    'raw_ann_info',
+                    'spacing',
+                )),
+        ]))
+test_dataloader = dict(
+    batch_size=4,
+    num_workers=2,
+    persistent_workers=True,
+    drop_last=False,
+    sampler=dict(type='DefaultSampler', shuffle=False, round_up=False),
+    dataset=dict(
+        type='CephalometricDataset',
+        data_root='E:/CL-Detection2023-MMPose/CL-detection2023',
+        data_mode='topdown',
+        ann_file='test.json',
+        data_prefix=dict(img='MMPose/'),
+        test_mode=True,
+        pipeline=[
+            dict(type='LoadImage'),
+            dict(type='GetBBoxCenterScale'),
+            dict(type='TopdownAffine', input_size=(
+                512,
+                512,
+            )),
+            dict(
+                type='PackPoseInputs',
+                meta_keys=(
+                    'id',
+                    'img_id',
+                    'img_path',
+                    'category_id',
+                    'crowd_index',
+                    'ori_shape',
+                    'img_shape',
+                    'input_size',
+                    'input_center',
+                    'input_scale',
+                    'flip',
+                    'flip_direction',
+                    'flip_indices',
+                    'raw_ann_info',
+                    'spacing',
+                )),
+        ]))
+val_evaluator = dict(type='CephalometricMetric')
+test_evaluator = dict(type='CephalometricMetric')
+launcher = 'none'
+work_dir = './work_dirs\\td-hm_hrnet-w32_udp-8xb64-250e-512x512_KeypointMSELoss'
+
+2023/08/12 13:45:35 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+2023/08/12 13:45:35 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SyncBuffersHook                    
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SyncBuffersHook                    
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) PoseVisualizationHook              
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train:
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) PoseVisualizationHook              
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+2023/08/12 13:45:36 - mmengine - WARNING - The prefix is not set in metric class CephalometricMetric.
+2023/08/12 13:45:38 - mmengine - INFO - Load checkpoint from E:\CL-Detection2023-MMPose\MMPose-checkpoints\best_SDR 2.0mm_epoch_170.pth
+2023/08/12 13:45:50 - mmengine - INFO - Epoch(test) [ 1/13]    eta: 0:02:11  time: 10.949389  data_time: 7.492250  memory: 516  
+2023/08/12 13:45:51 - mmengine - INFO - Epoch(test) [ 2/13]    eta: 0:01:06  time: 6.051141  data_time: 4.196587  memory: 516  
+2023/08/12 13:45:52 - mmengine - INFO - Epoch(test) [ 3/13]    eta: 0:00:44  time: 4.404274  data_time: 3.084413  memory: 516  
+2023/08/12 13:45:53 - mmengine - INFO - Epoch(test) [ 4/13]    eta: 0:00:32  time: 3.575600  data_time: 2.523332  memory: 516  
+2023/08/12 13:45:54 - mmengine - INFO - Epoch(test) [ 5/13]    eta: 0:00:24  time: 3.110472  data_time: 2.218760  memory: 516  
+2023/08/12 13:45:56 - mmengine - INFO - Epoch(test) [ 6/13]    eta: 0:00:19  time: 2.794428  data_time: 2.008927  memory: 516  
+2023/08/12 13:45:57 - mmengine - INFO - Epoch(test) [ 7/13]    eta: 0:00:15  time: 2.561384  data_time: 1.852243  memory: 516  
+2023/08/12 13:45:58 - mmengine - INFO - Epoch(test) [ 8/13]    eta: 0:00:11  time: 2.381159  data_time: 1.728731  memory: 516  
+2023/08/12 13:45:59 - mmengine - INFO - Epoch(test) [ 9/13]    eta: 0:00:08  time: 2.235075  data_time: 1.627473  memory: 516  
+2023/08/12 13:46:00 - mmengine - INFO - Epoch(test) [10/13]    eta: 0:00:06  time: 2.127135  data_time: 1.555543  memory: 516  
+2023/08/12 13:46:01 - mmengine - INFO - Epoch(test) [11/13]    eta: 0:00:04  time: 2.038609  data_time: 1.496390  memory: 516  
+2023/08/12 13:46:02 - mmengine - INFO - Epoch(test) [12/13]    eta: 0:00:01  time: 1.957881  data_time: 1.440097  memory: 516  
+2023/08/12 13:46:03 - mmengine - INFO - Epoch(test) [13/13]    eta: 0:00:00  time: 1.885950  data_time: 1.395443  memory: 480  
+2023/08/12 13:46:03 - mmengine - INFO - Evaluating CephalometricMetric...
+2023/08/12 13:46:03 - mmengine - INFO - Epoch(test) [13/13]    MRE: 1.881237  SDR 2.0mm: 68.684211  SDR 2.5mm: 78.157895  SDR 3.0mm: 85.684211  SDR 4.0mm: 92.736842  data_time: 1.395443  time: 1.885950
